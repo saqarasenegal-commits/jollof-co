@@ -9,3 +9,4 @@ export * from "./cart";
 export * from "./order";
 export * from "./kitchen";
 export * from "./rider";
+export * from "./admin";
