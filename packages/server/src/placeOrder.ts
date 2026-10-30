@@ -1,7 +1,12 @@
 /**
  * Places an order end to end: validate, save + take portions, pay, confirm by SMS.
  */
-import { validateOrder, type OrderError, type OrderRequest } from "@jollofco/core";
+import {
+  applyMenuUpdates,
+  validateOrder,
+  type OrderError,
+  type OrderRequest,
+} from "@jollofco/core";
 import { SoldOutError, type OrderStore } from "./db";
 import type { PaymentProvider } from "./payments";
 import type { MessageProvider } from "./sms";
@@ -21,6 +26,8 @@ export async function placeOrder(
   now: Date,
   { store, payments, messages }: Services,
 ): Promise<PlaceOrderResult> {
+  // Prices and dishes on/off as the admin set them, so totals match what the customer saw.
+  applyMenuUpdates(await store.menu());
   const sold = await store.soldOn(req.cart.date);
   const check = validateOrder(req, now, sold);
   if (!check.ok) return check;

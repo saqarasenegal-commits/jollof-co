@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { canReserve, findDish, isSoldOut, portionsLeft, PORTIONS_PER_DAY } from "../src";
+import {
+  canReserve,
+  findDish,
+  isSoldOut,
+  portionsLeft,
+  PORTIONS_PER_DAY,
+  soldAgainstDefault,
+} from "../src";
 
 const jollof = findDish("jollof")!;
 const yassa = findDish("yassa")!;
@@ -27,5 +34,13 @@ describe("limited portions", () => {
     expect(portionsLeft(yassa, 500)).toBeNull();
     expect(isSoldOut(yassa, 500)).toBe(false);
     expect(canReserve(yassa, 500, 10)).toBe(true);
+  });
+});
+
+describe("soldAgainstDefault", () => {
+  it("keeps the 'left' count right when the admin changed a day's portions", () => {
+    expect(portionsLeft(jollof, soldAgainstDefault(38, 40))).toBe(2);
+    expect(portionsLeft(jollof, soldAgainstDefault(10, 10))).toBe(0);
+    expect(portionsLeft(jollof, soldAgainstDefault(0, 60))).toBe(60);
   });
 });

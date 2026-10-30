@@ -12,6 +12,15 @@ export function portionsLeft(dish: Dish, alreadySold: number): number | null {
   return Math.max(0, PORTIONS_PER_DAY - alreadySold);
 }
 
+/**
+ * The rules count down from PORTIONS_PER_DAY. When the admin set another number of
+ * portions for a day (daily_stock.portions), convert the database's `sold` so the
+ * "left" count stays right: 38 sold of 40 → 38; 10 sold of 10 → 40; 0 sold of 60 → -20.
+ */
+export function soldAgainstDefault(sold: number, portions: number): number {
+  return sold - portions + PORTIONS_PER_DAY;
+}
+
 /** "Épuisé" / sold out. */
 export function isSoldOut(dish: Dish, alreadySold: number): boolean {
   return portionsLeft(dish, alreadySold) === 0;

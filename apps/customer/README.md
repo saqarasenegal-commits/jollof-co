@@ -12,8 +12,8 @@ npm run start -w @jollofco/customer   # then press i (iOS), a (Android) or w (we
 - `src/i18n.ts`: every text in English and Arabic.
 - `src/theme.ts`: brand colours.
 - `src/data/`: where data comes from. `menu.ts` (live prices, dishes on/off) and `stock.ts`
-  (portions sold) read Supabase when `.env` is set, otherwise demo data. `orders.ts` still uses
-  demo orders until the place-order function is deployed.
+  (portions sold) read Supabase when `.env` is set, otherwise demo data. `orders.ts` sends orders to the
+  `place-order` function (`EXPO_PUBLIC_ORDER_API_URL`), or fakes them without it.
 
 To use the live database: `cp .env.example .env` in this folder, then restart Expo. The values are
 the public URL and publishable key (safe in the app; never put the secret key here).
