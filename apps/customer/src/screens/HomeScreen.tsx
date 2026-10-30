@@ -4,7 +4,6 @@ import {
   findDish,
   menuFor,
   qtyInCart,
-  orderableDays,
   regionOfDay,
   toQatarTime,
   type IsoDate,
@@ -32,16 +31,23 @@ interface Props {
   lang: Lang;
   onToggleLanguage: () => void;
   now: Date;
+  cart: Cart;
+  setCart: (cart: Cart) => void;
+  onCheckout: () => void;
   stock?: StockSource;
 }
 
-export function HomeScreen({ lang, onToggleLanguage, now, stock = placeholderStock }: Props) {
+export function HomeScreen({
+  lang,
+  onToggleLanguage,
+  now,
+  cart,
+  setCart,
+  onCheckout,
+  stock = placeholderStock,
+}: Props) {
   const t = strings[lang];
   const today = toQatarTime(now).date;
-  const [cart, setCart] = useState<Cart>(() => ({
-    date: orderableDays(now)[0]?.date ?? today,
-    lines: [],
-  }));
   const [sold, setSold] = useState<Record<string, number>>({});
   const [notice, setNotice] = useState<string | null>(null);
   const day = cart.date;
@@ -130,7 +136,7 @@ export function HomeScreen({ lang, onToggleLanguage, now, stock = placeholderSto
           />
         ))}
       </ScrollView>
-      <CartBar cart={cart} lang={lang} />
+      <CartBar cart={cart} lang={lang} onPress={onCheckout} />
     </View>
   );
 }

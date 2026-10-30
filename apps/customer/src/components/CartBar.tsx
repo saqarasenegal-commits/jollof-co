@@ -1,10 +1,10 @@
 import { cartCount, cartSubtotal, MIN_ORDER_QAR, type Cart, type Lang } from "@jollofco/core";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { strings, weekdayName } from "../i18n";
 import { colors, spacing } from "../theme";
 
-/** Sticky summary at the bottom of the screen. Checkout comes in phase 3. */
-export function CartBar({ cart, lang }: { cart: Cart; lang: Lang }) {
+/** Sticky summary at the bottom of the screen. Opens checkout once the minimum is reached. */
+export function CartBar({ cart, lang, onPress }: { cart: Cart; lang: Lang; onPress: () => void }) {
   const t = strings[lang];
   const count = cartCount(cart);
   if (count === 0) return null;
@@ -13,7 +13,13 @@ export function CartBar({ cart, lang }: { cart: Cart; lang: Lang }) {
   const rtl = lang === "ar";
 
   return (
-    <View style={styles.bar}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={t.checkout}
+      disabled={missing > 0}
+      onPress={onPress}
+      style={styles.bar}
+    >
       <View style={[styles.row, rtl && styles.rowRtl]}>
         <Text style={styles.text}>
           {t.basket(count)} · {t.forDay(weekdayName(cart.date, lang))}
@@ -25,7 +31,7 @@ export function CartBar({ cart, lang }: { cart: Cart; lang: Lang }) {
           {t.missingForMinimum(missing)}
         </Text>
       )}
-    </View>
+    </Pressable>
   );
 }
 

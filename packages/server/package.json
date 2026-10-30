@@ -1,0 +1,17 @@
+{
+  "name": "@jollofco/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Server-side order placement: validation, stock, payment and SMS, behind swappable providers.",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@jollofco/core": "*",
+    "@supabase/supabase-js": "^2.118.0"
+  }
+}

@@ -13,6 +13,8 @@ apps/
 packages/
   core/        Business rules shared by every app: menu, region of the day,
                40-portion limit, pre-order cut-off, prices. Pure TypeScript, fully tested.
+  server/      Order placement on the server: validation, stock, payment, SMS.
+supabase/      Database schema, generated seed data, database tests.
 docs/          Architecture, business rules, decisions.
 scripts/       setup.sh: one-command setup for new developers.
 .github/       CI: formatting, type checks and tests on every push.
@@ -32,12 +34,14 @@ npm start              # runs the customer app (press w for web)
 
 Everyday commands:
 
-| Command             | What it does                        |
-| ------------------- | ----------------------------------- |
-| `npm test`          | Run all tests                       |
-| `npm run typecheck` | Check TypeScript types              |
-| `npm run format`    | Format all files with Prettier      |
-| `npm run check`     | Everything CI runs, before you push |
+| Command             | What it does                               |
+| ------------------- | ------------------------------------------ |
+| `npm test`          | Run all tests                              |
+| `npm run typecheck` | Check TypeScript types                     |
+| `npm run format`    | Format all files with Prettier             |
+| `npm run check`     | Everything CI runs, before you push        |
+| `npm run db:seed`   | Regenerate supabase/seed.sql from the menu |
+| `npm run db:test`   | Database tests (needs `DATABASE_URL`)      |
 
 ## Where to change things
 
@@ -48,6 +52,7 @@ Everyday commands:
 | Portions per day, pre-order cut-off, hours | `packages/core/src/config.ts` |
 | Minimum order, free delivery, WhatsApp     | `packages/core/src/config.ts` |
 | Delivery zones and fees                    | `packages/core/src/zones.ts`  |
+| Delivery slots, payment methods            | `packages/core/src/config.ts` |
 
 Business rules are explained in plain words in [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md).
 Values marked **PLACEHOLDER** in the code are not confirmed by the owner yet.

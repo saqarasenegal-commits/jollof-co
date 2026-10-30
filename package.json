@@ -15,10 +15,13 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run format:check && npm run typecheck && npm test"
+    "check": "npm run format:check && npm run typecheck && npm test",
+    "db:seed": "tsx scripts/generate-seed.ts",
+    "db:test": "./scripts/test-db.sh"
   },
   "devDependencies": {
     "prettier": "^3.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5.6.3",
     "vitest": "^2.1.4"
   }
