@@ -1,48 +1,7 @@
-import { qatarInstant, type IsoDate, type OrderRequest } from "@jollofco/core";
-import { describe, expect, it } from "vitest";
-import {
-  ConsoleMessages,
-  placeOrder,
-  SandboxPayments,
-  SoldOutError,
-  type NewOrder,
-  type OrderStore,
-  type PaymentProvider,
-} from "../src";
-
-/** In-memory stand-in for the database, with the same 40-portion rule. */
-class MemoryStore implements OrderStore {
-  orders: Array<NewOrder & { id: string; number: string; payment?: string; cancelled?: boolean }> =
-    [];
-  sold: Record<string, number> = {};
-
-  async soldOn(_date: IsoDate) {
-    return { ...this.sold };
-  }
-  async createOrder(order: NewOrder, items: Array<{ dish_id: string; qty: number }>) {
-    for (const i of items) {
-      if (i.dish_id === "jollof" && (this.sold.jollof ?? 0) + i.qty > 40)
-        throw new SoldOutError(i.dish_id);
-    }
-    for (const i of items)
-      if (i.dish_id === "jollof") this.sold.jollof = (this.sold.jollof ?? 0) + i.qty;
-    const saved = {
-      ...order,
-      id: `id-${this.orders.length}`,
-      number: `JC-${1001 + this.orders.length}`,
-    };
-    this.orders.push(saved);
-    return saved;
-  }
-  async cancelOrder(orderId: string) {
-    const o = this.orders.find((x) => x.id === orderId)!;
-    o.cancelled = true;
-    this.sold.jollof = 0;
-  }
-  async setPayment(orderId: string, status: "paid" | "failed") {
-    this.orders.find((o) => o.id === orderId)!.payment = status;
-  }
-}
+import { applyMenuUpdates, qatarInstant, type OrderRequest } from "@jollofco/core";
+import { afterEach, describe, expect, it } from "vitest";
+import { ConsoleMessages, placeOrder, SandboxPayments, type PaymentProvider } from "../src";
+import { MemoryStore } from "./memoryStore";
 
 const MON = "2026-11-02";
 const now = qatarInstant(MON, 12);
@@ -59,7 +18,25 @@ function services(payments: PaymentProvider = new SandboxPayments()) {
   return { store: new MemoryStore(), payments, messages: new ConsoleMessages() };
 }
 
+afterEach(() => applyMenuUpdates([]));
+
 describe("placeOrder", () => {
+  it("charges the admin's live price", async () => {
+    const s = services();
+    s.store.prices = [{ id: "jollof", price: 50, active: true }];
+    const r = await placeOrder(req, now, s);
+    expect(r).toMatchObject({ ok: true, total: 110 }); // 2 × 50 + 10 delivery
+    expect(s.store.orders[0]).toMatchObject({ subtotal_qar: 100, total_qar: 110 });
+  });
+
+  it("refuses a dish the admin switched off", async () => {
+    const s = services();
+    s.store.prices = [{ id: "jollof", price: 45, active: false }];
+    const r = await placeOrder(req, now, s);
+    expect(r.ok).toBe(false);
+    expect(s.store.orders).toHaveLength(0);
+  });
+
   it("saves, pays in the sandbox and sends a confirmation", async () => {
     const s = services();
     const r = await placeOrder(req, now, s);

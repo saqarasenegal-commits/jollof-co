@@ -2,7 +2,7 @@
  * What order placement needs from the database. SupabaseOrderStore is the real
  * one; tests use an in-memory fake, so the logic is tested without a server.
  */
-import type { IsoDate } from "@jollofco/core";
+import { soldAgainstDefault, type DishUpdate, type IsoDate } from "@jollofco/core";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export interface NewOrder {
@@ -34,6 +34,8 @@ export class SoldOutError extends Error {
 }
 
 export interface OrderStore {
+  /** Live prices and on/off state of every dish (see applyMenuUpdates). */
+  menu(): Promise<DishUpdate[]>;
   /** Portions already taken for each dish of the day on that date. */
   soldOn(date: IsoDate): Promise<Record<string, number>>;
   /** Saves the order and takes the portions atomically. Throws SoldOutError if one ran out. */
@@ -47,13 +49,25 @@ export interface OrderStore {
 export class SupabaseOrderStore implements OrderStore {
   constructor(private readonly client: SupabaseClient) {}
 
+  async menu() {
+    const { data, error } = await this.client.from("dishes").select("id, price_qar, active");
+    if (error) throw error;
+    return (data ?? []).map((r) => ({
+      id: r.id as string,
+      price: Number(r.price_qar),
+      active: r.active as boolean,
+    }));
+  }
+
   async soldOn(date: IsoDate) {
     const { data, error } = await this.client
       .from("daily_stock")
-      .select("dish_id, sold")
+      .select("dish_id, sold, portions")
       .eq("delivery_date", date);
     if (error) throw error;
-    return Object.fromEntries((data ?? []).map((r) => [r.dish_id as string, r.sold as number]));
+    return Object.fromEntries(
+      (data ?? []).map((r) => [r.dish_id as string, soldAgainstDefault(r.sold, r.portions)]),
+    );
   }
 
   async createOrder(order: NewOrder, items: Array<{ dish_id: string; qty: number }>) {

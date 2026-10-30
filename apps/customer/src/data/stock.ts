@@ -4,7 +4,7 @@
  * With Supabase configured it reads the daily_stock counters (refreshed every
  * minute by the home screen); otherwise nothing is sold (demo).
  */
-import { PORTIONS_PER_DAY, type IsoDate } from "@jollofco/core";
+import { soldAgainstDefault, type IsoDate } from "@jollofco/core";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 
@@ -27,13 +27,8 @@ export function supabaseStock(client: SupabaseClient): StockSource {
         .select("dish_id, sold, portions")
         .eq("delivery_date", date);
       if (error) throw error;
-      // The screens count down from PORTIONS_PER_DAY. When the admin changed a day's
-      // portions, shift the count so "N left" is still right.
       return Object.fromEntries(
-        data.map((r) => [
-          r.dish_id as string,
-          (r.sold as number) - (r.portions as number) + PORTIONS_PER_DAY,
-        ]),
+        data.map((r) => [r.dish_id as string, soldAgainstDefault(r.sold, r.portions)]),
       );
     },
   };
