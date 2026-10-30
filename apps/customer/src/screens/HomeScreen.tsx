@@ -2,6 +2,7 @@ import {
   addToCart,
   changeCartDay,
   findDish,
+  MENU,
   menuFor,
   qtyInCart,
   regionOfDay,
@@ -17,7 +18,7 @@ import { CartBar } from "../components/CartBar";
 import { DishRow } from "../components/DishRow";
 import { RegionCard } from "../components/RegionCard";
 import { textDir } from "../components/textDir";
-import { placeholderStock, type StockSource } from "../data/stock";
+import { stockSource, type StockSource } from "../data/stock";
 import { strings, weekdayName } from "../i18n";
 import { colors, spacing } from "../theme";
 
@@ -44,7 +45,7 @@ export function HomeScreen({
   cart,
   setCart,
   onCheckout,
-  stock = placeholderStock,
+  stock = stockSource,
 }: Props) {
   const t = strings[lang];
   const today = toQatarTime(now).date;
@@ -57,7 +58,11 @@ export function HomeScreen({
     setCart(moved.cart);
     setNotice(
       moved.removed.length
-        ? t.removedFromBasket(moved.removed.map((id) => findDish(id)!.name[lang]).join(", "))
+        ? t.removedFromBasket(
+            moved.removed
+              .map((id) => (findDish(id) ?? MENU.find((d) => d.id === id))?.name[lang] ?? id)
+              .join(", "),
+          )
         : null,
     );
   }
@@ -69,11 +74,14 @@ export function HomeScreen({
 
   useEffect(() => {
     let active = true;
-    stock.soldOn(day).then((s) => active && setSold(s));
+    stock
+      .soldOn(day)
+      .then((s) => active && setSold(s))
+      .catch(() => {}); // offline: keep the last counts, the server re-checks portions anyway
     return () => {
       active = false;
     };
-  }, [day, stock]);
+  }, [day, stock, now]); // `now` ticks every minute, so the counters refresh too
 
   const menu = menuFor(day);
   const specials = menu.filter((d) => d.dailySpecial);

@@ -352,6 +352,34 @@ export const MENU: readonly Dish[] = [
   },
 ];
 
+/** Price and on/off state of a dish, as the admin set them in the database. */
+export interface DishUpdate {
+  id: string;
+  price: number;
+  active: boolean;
+}
+
+let updates = new Map<string, DishUpdate>();
+
+/**
+ * Applies the live prices and on/off states from the database over MENU.
+ * Call it when the app starts (and on refresh); without it the bundled MENU is used.
+ * Dishes missing from `list` keep their bundled price and stay on the menu.
+ */
+export function applyMenuUpdates(list: readonly DishUpdate[]): void {
+  updates = new Map(list.map((u) => [u.id, u]));
+}
+
+/** The menu customers can order from: MENU with live prices, without dishes switched off. */
+export function currentMenu(): Dish[] {
+  return MENU.flatMap((d) => {
+    const u = updates.get(d.id);
+    if (!u) return [d];
+    return u.active ? [{ ...d, price: u.price }] : [];
+  });
+}
+
+/** A dish customers can order, with its live price. undefined if unknown or switched off. */
 export function findDish(id: string): Dish | undefined {
-  return MENU.find((d) => d.id === id);
+  return currentMenu().find((d) => d.id === id);
 }
