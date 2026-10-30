@@ -1,0 +1,12 @@
+{
+  "name": "@jollofco/brand",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Brand colours and spacing shared by every jollof&co app.",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}

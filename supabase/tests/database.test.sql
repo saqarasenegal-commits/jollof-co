@@ -67,6 +67,32 @@ begin
     null;
   end;
 
+  -- Kitchen statuses follow the allowed steps.
+  o := public.create_order(
+    '{"delivery_date":"2026-11-02","kind":"today","slot":"asap","customer_name":"Test",
+      "phone":"55551234","zone_id":"west-bay","street":"850","building":"12",
+      "payment_method":"cash","subtotal_qar":50,"delivery_qar":10,"total_qar":60}',
+    '[{"dish_id":"mafe","qty":1}]');
+  o := public.set_order_status(o.id, 'cooking');
+  assert o.status = 'cooking', 'received -> cooking';
+  begin
+    perform public.set_order_status(o.id, 'delivered');
+    assert false, 'cooking -> delivered must be refused';
+  exception when raise_exception then
+    assert sqlerrm = 'invalid_transition:cooking->delivered', 'unexpected error: ' || sqlerrm;
+  end;
+  o := public.set_order_status(o.id, 'cancelled');
+  assert o.status = 'cancelled', 'cooking -> cancelled';
+  select sold into n from public.daily_stock where delivery_date = '2026-11-02' and dish_id = 'mafe';
+  assert n = 0, 'cancelling from the kitchen gives the portion back, got ' || n;
+
+  -- Staff roles.
+  insert into public.staff values ('00000000-0000-0000-0000-000000000001', 'Chef', 'kitchen');
+  perform set_config('test.uid', '00000000-0000-0000-0000-000000000001', true);
+  assert public.staff_role() = 'kitchen', 'kitchen role';
+  perform set_config('test.uid', '00000000-0000-0000-0000-000000000002', true);
+  assert public.staff_role() is null, 'customers have no staff role';
+
   raise notice 'database tests passed';
 end;
 $$;
