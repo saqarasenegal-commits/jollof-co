@@ -12,7 +12,7 @@ const SECTIONS: Section[] = ["mains", "sides", "drinks", "desserts", "combos"];
 /** Prices and dishes on/off, grouped by menu section. */
 export function MenuScreen({ source }: { source: AdminSource }) {
   const [dishes, setDishes] = useState<AdminDish[]>([]);
-  const reload = () => source.dishes().then(setDishes);
+  const reload = () => source.dishes().then(setDishes, () => {}); // offline: keep the last list
   useEffect(() => {
     reload();
   }, [source]);
@@ -48,14 +48,22 @@ function DishRow({
   async function savePrice() {
     const parsed = parsePrice(price);
     if (!parsed.ok) return setMessage({ text: L.priceErrors[parsed.error], error: true });
-    await source.updateDish(dish.id, { price: parsed.value });
-    setMessage({ text: L.saved, error: false });
-    onSaved();
+    try {
+      await source.updateDish(dish.id, { price: parsed.value });
+      setMessage({ text: L.saved, error: false });
+      onSaved();
+    } catch {
+      setMessage({ text: L.saveFailed, error: true });
+    }
   }
 
   async function toggle(active: boolean) {
-    await source.updateDish(dish.id, { active });
-    onSaved();
+    try {
+      await source.updateDish(dish.id, { active });
+      onSaved();
+    } catch {
+      setMessage({ text: L.saveFailed, error: true });
+    }
   }
 
   return (

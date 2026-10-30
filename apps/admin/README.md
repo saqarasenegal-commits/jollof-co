@@ -10,9 +10,11 @@ Back office for the owner, in French. Two tabs:
 npm run web -w @jollofco/admin
 ```
 
-Data goes through `src/data/admin.ts` (in memory until Supabase is deployed). The database side is
-ready: `update_dish` and `set_portions` in `supabase/migrations`, admin only. Input rules:
+Data goes through `src/data/admin.ts`: with `.env` (`cp .env.example .env`) the owner signs in
+and changes go to the live database (`update_dish`, `set_portions`, admin only; accounts in
+`docs/STAFF.md`); without it, an in-memory demo. Input rules:
 `packages/core/src/admin.ts`.
 
 FR : back-office du propriétaire. Modifier les prix, retirer ou remettre un plat, changer le nombre
-de portions des plats du jour pour les 7 prochains jours.
+de portions des plats du jour pour les 7 prochains jours. Avec le fichier `.env`, connexion avec
+votre compte et changements enregistrés dans la base.

@@ -1,9 +1,9 @@
 /**
  * Where the kitchen screen gets its orders.
  *
- * `demoKitchen` holds sample orders in memory so the screen can be tried without
- * a backend. The Supabase version will read the `orders` table and subscribe to
- * realtime changes; it implements the same interface, so screens don't change.
+ * `supabaseKitchen` reads the day's orders, follows changes live (realtime) and
+ * calls set_order_status / assign_rider. `demoKitchen` holds sample orders in
+ * memory so the screen can be tried without a backend. Same interface for both.
  */
 import {
   canTransition,
@@ -12,6 +12,7 @@ import {
   type KitchenOrder,
   type OrderStatus,
 } from "@jollofco/core";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export interface Rider {
   id: string;
@@ -19,7 +20,7 @@ export interface Rider {
 }
 
 export interface KitchenSource {
-  riders: Rider[];
+  riders(): Promise<Rider[]>;
   /** Hands a cooked order to a rider (status becomes "on_the_way"). */
   assignRider(orderId: string, riderId: string): Promise<void>;
   /** Calls `onChange` now and every time the day's orders change. Returns an unsubscribe function. */
@@ -92,10 +93,12 @@ export function demoKitchen(date: IsoDate, now: Date): KitchenSource {
   const emit = () => listeners.forEach((l) => l(orders));
 
   return {
-    riders: [
-      { id: "r1", name: "Moussa" },
-      { id: "r2", name: "Kofi" },
-    ],
+    async riders() {
+      return [
+        { id: "r1", name: "Moussa" },
+        { id: "r2", name: "Kofi" },
+      ];
+    },
     async assignRider(orderId) {
       await this.setStatus(orderId, "on_the_way");
     },
@@ -112,6 +115,81 @@ export function demoKitchen(date: IsoDate, now: Date): KitchenSource {
         return { ...o, status };
       });
       emit();
+    },
+  };
+}
+
+const ORDER_COLUMNS =
+  "id, number, delivery_date, slot, created_at, status, customer_name, zone_id, note, order_items(dish_id, qty)";
+
+/** Needs a signed-in kitchen or admin account (RLS and the SQL functions check the role). */
+export function supabaseKitchen(client: SupabaseClient): KitchenSource {
+  async function load(date: IsoDate): Promise<KitchenOrder[]> {
+    const { data, error } = await client
+      .from("orders")
+      .select(ORDER_COLUMNS)
+      .eq("delivery_date", date);
+    if (error) throw error;
+    return data.map((o) => ({
+      id: o.id,
+      number: o.number,
+      deliveryDate: o.delivery_date,
+      slot: o.slot,
+      createdAt: o.created_at,
+      status: o.status,
+      customerName: o.customer_name,
+      zoneId: o.zone_id,
+      note: o.note ?? undefined,
+      lines: o.order_items.map((i: { dish_id: string; qty: number }) => ({
+        dishId: i.dish_id,
+        qty: i.qty,
+      })),
+    }));
+  }
+
+  // Screens watching right now; refreshed straight after our own changes too.
+  const refreshers = new Set<() => void>();
+
+  async function rpc(name: string, args: Record<string, unknown>) {
+    const { error } = await client.rpc(name, args);
+    if (error) throw new Error(error.message);
+    refreshers.forEach((r) => r());
+  }
+
+  return {
+    async riders() {
+      const { data, error } = await client
+        .from("staff")
+        .select("user_id, name")
+        .eq("role", "rider");
+      if (error) throw error;
+      return data.map((r) => ({ id: r.user_id, name: r.name }));
+    },
+    assignRider: (orderId, riderId) =>
+      rpc("assign_rider", { p_order_id: orderId, p_rider_id: riderId }),
+    setStatus: (orderId, status) =>
+      rpc("set_order_status", { p_order_id: orderId, p_status: status }),
+    watch(date, onChange) {
+      let active = true;
+      const refresh = () =>
+        load(date).then(
+          (orders) => active && onChange(orders),
+          () => {}, // offline: keep showing the last list, the next change or poll retries
+        );
+      refresh();
+      refreshers.add(refresh);
+      // Live updates when an order arrives or changes, plus a poll in case the connection dropped.
+      const channel = client
+        .channel(`kitchen-${date}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, refresh)
+        .subscribe();
+      const poll = setInterval(refresh, 30_000);
+      return () => {
+        active = false;
+        refreshers.delete(refresh);
+        clearInterval(poll);
+        client.removeChannel(channel);
+      };
     },
   };
 }

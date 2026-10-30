@@ -35,7 +35,7 @@ function Day({ date, source }: { date: IsoDate; source: AdminSource }) {
         date,
         dishes.map((d) => d.id),
       )
-      .then(setStock);
+      .then(setStock, () => {}); // offline: keep the last numbers
   useEffect(() => {
     reload();
   }, [date, source]);
@@ -80,9 +80,14 @@ function PortionRow(props: {
   async function save() {
     const checked = checkPortions(value, stock.sold);
     if (!checked.ok) return setMessage({ text: L.portionsErrors[checked.error], error: true });
-    await source.setPortions(date, stock.dishId, checked.value);
-    setMessage({ text: L.saved, error: false });
-    onSaved();
+    try {
+      await source.setPortions(date, stock.dishId, checked.value);
+      setMessage({ text: L.saved, error: false });
+      onSaved();
+    } catch {
+      // Also covers portions sold in the meantime (the database refuses going below them).
+      setMessage({ text: L.saveFailed, error: true });
+    }
   }
 
   return (

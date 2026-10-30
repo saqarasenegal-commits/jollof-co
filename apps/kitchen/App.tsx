@@ -12,7 +12,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { PrepList } from "./src/components/PrepList";
 import { Ticket } from "./src/components/Ticket";
-import { demoKitchen, type KitchenSource } from "./src/data/orders";
+import { SIGN_IN_EN, StaffGate, staffClientFromEnv } from "@jollofco/staff";
+import { demoKitchen, supabaseKitchen, type KitchenSource, type Rider } from "./src/data/orders";
 
 const REGION_NAME = { west: "West Africa", east: "East Africa", north: "North Africa" } as const;
 
@@ -25,14 +26,36 @@ function useNow(intervalMs = 30_000): Date {
   return now;
 }
 
+// Live database when .env is set (staff sign in first), sample orders otherwise.
+const client = staffClientFromEnv();
+const liveSource = client && supabaseKitchen(client);
+
 export default function App() {
+  if (!client || !liveSource) return <DemoKitchen />;
+  return (
+    <StaffGate client={client} allowed={["kitchen"]} labels={SIGN_IN_EN} signOutLabel="Sign out">
+      {() => <KitchenScreen source={liveSource} />}
+    </StaffGate>
+  );
+}
+
+function DemoKitchen() {
+  const { date } = toQatarTime(new Date());
+  const source = useMemo(() => demoKitchen(date, new Date()), [date]);
+  return <KitchenScreen source={source} />;
+}
+
+function KitchenScreen({ source }: { source: KitchenSource }) {
   const now = useNow();
   const { date, hour, minute } = toQatarTime(now);
-  const source: KitchenSource = useMemo(() => demoKitchen(date, new Date()), [date]);
   const [orders, setOrders] = useState<KitchenOrder[]>([]);
+  const [riders, setRiders] = useState<Rider[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => source.watch(date, setOrders), [source, date]);
+  useEffect(() => {
+    source.riders().then(setRiders, (e: Error) => setError(e.message));
+  }, [source]);
 
   const report = (p: Promise<void>) =>
     p.then(
@@ -71,7 +94,7 @@ export default function App() {
               key={o.id}
               order={o}
               now={now}
-              riders={source.riders}
+              riders={riders}
               onStatus={(status) => report(source.setStatus(o.id, status))}
               onRider={(riderId) => report(source.assignRider(o.id, riderId))}
             />
