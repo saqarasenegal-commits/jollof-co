@@ -13,7 +13,15 @@ import {
   type OrderStatus,
 } from "@jollofco/core";
 
+export interface Rider {
+  id: string;
+  name: string;
+}
+
 export interface KitchenSource {
+  riders: Rider[];
+  /** Hands a cooked order to a rider (status becomes "on_the_way"). */
+  assignRider(orderId: string, riderId: string): Promise<void>;
   /** Calls `onChange` now and every time the day's orders change. Returns an unsubscribe function. */
   watch(date: IsoDate, onChange: (orders: KitchenOrder[]) => void): () => void;
   setStatus(orderId: string, status: OrderStatus): Promise<void>;
@@ -84,6 +92,13 @@ export function demoKitchen(date: IsoDate, now: Date): KitchenSource {
   const emit = () => listeners.forEach((l) => l(orders));
 
   return {
+    riders: [
+      { id: "r1", name: "Moussa" },
+      { id: "r2", name: "Kofi" },
+    ],
+    async assignRider(orderId) {
+      await this.setStatus(orderId, "on_the_way");
+    },
     watch(_date, onChange) {
       listeners.add(onChange);
       onChange(orders);

@@ -8,6 +8,7 @@ import {
   type OrderStatus,
 } from "@jollofco/core";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import type { Rider } from "../data/orders";
 import { actionLabel, statusLabel } from "../labels";
 
 const STATUS_COLOR: Record<OrderStatus, string> = {
@@ -21,11 +22,13 @@ const STATUS_COLOR: Record<OrderStatus, string> = {
 interface Props {
   order: KitchenOrder;
   now: Date;
+  riders: Rider[];
   onStatus: (status: OrderStatus) => void;
+  onRider: (riderId: string) => void;
 }
 
 /** One order card on the kitchen screen. */
-export function Ticket({ order, now, onStatus }: Props) {
+export function Ticket({ order, now, riders, onStatus, onRider }: Props) {
   const next = nextStatus(order.status);
   const waited = Math.round((now.getTime() - new Date(order.createdAt).getTime()) / 60_000);
   const finished = order.status === "delivered" || order.status === "cancelled";
@@ -53,10 +56,30 @@ export function Ticket({ order, now, onStatus }: Props) {
         ))}
       </View>
       {order.note && <Text style={styles.note}>“{order.note}”</Text>}
-      {next && (
-        <Pressable accessibilityRole="button" onPress={() => onStatus(next)} style={styles.action}>
-          <Text style={styles.actionText}>{actionLabel[next]}</Text>
-        </Pressable>
+      {next === "on_the_way" ? (
+        <View style={styles.riders}>
+          <Text style={styles.ridersLabel}>{actionLabel.on_the_way}:</Text>
+          {riders.map((r) => (
+            <Pressable
+              key={r.id}
+              accessibilityRole="button"
+              onPress={() => onRider(r.id)}
+              style={styles.rider}
+            >
+              <Text style={styles.actionText}>{r.name}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : (
+        next && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => onStatus(next)}
+            style={styles.action}
+          >
+            <Text style={styles.actionText}>{actionLabel[next]}</Text>
+          </Pressable>
+        )
       )}
       {canTransition(order.status, "cancelled") && (
         <Pressable accessibilityRole="button" onPress={() => onStatus("cancelled")}>
@@ -102,5 +125,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionText: { color: colors.indigo, fontWeight: "800", fontSize: 16 },
+  riders: { marginTop: spacing(4), gap: spacing(2) },
+  ridersLabel: { color: colors.muted, fontWeight: "600" },
+  rider: {
+    backgroundColor: colors.saffron,
+    borderRadius: 999,
+    paddingVertical: spacing(2),
+    alignItems: "center",
+  },
   cancel: { color: colors.muted, textAlign: "center", marginTop: spacing(3), fontSize: 13 },
 });

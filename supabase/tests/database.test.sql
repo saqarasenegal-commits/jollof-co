@@ -93,6 +93,55 @@ begin
   perform set_config('test.uid', '00000000-0000-0000-0000-000000000002', true);
   assert public.staff_role() is null, 'customers have no staff role';
 
+  -- Riders: kitchen hands over, only that rider can mark it delivered, cash becomes paid.
+  insert into public.staff values ('00000000-0000-0000-0000-0000000000a1', 'Rider A', 'rider');
+  insert into public.staff values ('00000000-0000-0000-0000-0000000000b2', 'Rider B', 'rider');
+  perform set_config('test.uid', '', true);
+  o := public.create_order(
+    '{"delivery_date":"2026-11-02","kind":"today","slot":"asap","customer_name":"Test",
+      "phone":"55551234","zone_id":"west-bay","street":"850","building":"12",
+      "payment_method":"cash","subtotal_qar":48,"delivery_qar":10,"total_qar":58}',
+    '[{"dish_id":"yassa","qty":1}]');
+  begin
+    perform public.assign_rider(o.id, '00000000-0000-0000-0000-0000000000a1');
+    assert false, 'an order that is not cooked yet cannot leave';
+  exception when raise_exception then
+    assert sqlerrm = 'order_not_ready', 'unexpected error: ' || sqlerrm;
+  end;
+  perform public.set_order_status(o.id, 'cooking');
+  o := public.assign_rider(o.id, '00000000-0000-0000-0000-0000000000a1');
+  assert o.status = 'on_the_way' and o.picked_up_at is not null, 'handed to rider A';
+
+  -- From here, calls look like they come through the API as a signed-in user.
+  perform set_config('request.jwt.claims', '{"role":"authenticated"}', true);
+
+  -- Rider B cannot close rider A's delivery, nor move orders through kitchen steps.
+  perform set_config('test.uid', '00000000-0000-0000-0000-0000000000b2', true);
+  begin
+    perform public.set_order_status(o.id, 'delivered');
+    assert false, 'riders must not use the kitchen steps';
+  exception when raise_exception then
+    assert sqlerrm = 'not_allowed', 'unexpected error: ' || sqlerrm;
+  end;
+  begin
+    perform public.mark_delivered(o.id);
+    assert false, 'rider B must not close rider A''s order';
+  exception when raise_exception then
+    assert sqlerrm = 'not_your_delivery', 'unexpected error: ' || sqlerrm;
+  end;
+  perform set_config('test.uid', '00000000-0000-0000-0000-0000000000a1', true);
+  o := public.mark_delivered(o.id);
+  assert o.status = 'delivered' and o.payment_status = 'paid', 'cash collected on delivery';
+
+  -- A customer (signed in, not staff) can do none of this.
+  perform set_config('test.uid', '00000000-0000-0000-0000-0000000000c3', true);
+  begin
+    perform public.assign_rider(o.id, '00000000-0000-0000-0000-0000000000a1');
+    assert false, 'customers cannot assign riders';
+  exception when raise_exception then
+    assert sqlerrm = 'not_allowed', 'unexpected error: ' || sqlerrm;
+  end;
+
   raise notice 'database tests passed';
 end;
 $$;

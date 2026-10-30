@@ -6,7 +6,7 @@ Chosen to be **mainstream and easy to hire for**: any React / TypeScript freelan
 | ---------------------- | ----------------------------------- | ----------- |
 | Business rules         | TypeScript package `packages/core`  | Done        |
 | Customer app           | Expo (React Native), iOS + Android  | In progress |
-| Rider app              | Expo, same codebase style           | Planned     |
+| Rider app              | Expo, same codebase style           | In progress |
 | Kitchen screen + admin | Web (Expo web or React) on a tablet | In progress |
 | Backend                | Supabase (Postgres, auth, realtime) | Next        |
 | Payments               | Qatar gateway (SADAD/SkipCash/Tap)  | Sandbox     |
