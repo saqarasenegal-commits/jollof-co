@@ -44,3 +44,19 @@ export const FREE_DELIVERY_FROM_QAR = 120;
 
 /** WhatsApp contact number. PLACEHOLDER: mozde has not given it yet. */
 export const WHATSAPP_NUMBER = "+974 0000 0000";
+
+/** Delivery slots offered for scheduled orders and pre-orders. PLACEHOLDER. */
+export const DELIVERY_SLOTS = [
+  "12:00-13:00",
+  "13:00-14:00",
+  "18:00-19:00",
+  "19:00-20:00",
+  "20:00-21:00",
+  "21:00-22:00",
+] as const;
+
+/** A same-day slot must start at least this many minutes from now (cooking + riding time). */
+export const SLOT_LEAD_MINUTES = 60;
+
+/** Payment methods. Cash is not accepted for pre-orders (validated in the prototype). */
+export const PAYMENT_METHODS = ["card", "apple_pay", "cash"] as const;
