@@ -2,15 +2,15 @@
 
 Chosen to be **mainstream and easy to hire for**: any React / TypeScript freelancer can maintain it.
 
-| Part                   | Technology                          | Status  |
-| ---------------------- | ----------------------------------- | ------- |
-| Business rules         | TypeScript package `packages/core`  | Done    |
-| Customer app           | Expo (React Native), iOS + Android  | Next    |
-| Rider app              | Expo, same codebase style           | Planned |
-| Kitchen screen + admin | Web (Expo web or React) on a tablet | Planned |
-| Backend                | Supabase (Postgres, auth, realtime) | Next    |
-| Payments               | Qatar gateway (SADAD/SkipCash/Tap)  | Sandbox |
-| SMS / WhatsApp         | Provider TBD                        | Sandbox |
+| Part                   | Technology                          | Status      |
+| ---------------------- | ----------------------------------- | ----------- |
+| Business rules         | TypeScript package `packages/core`  | Done        |
+| Customer app           | Expo (React Native), iOS + Android  | In progress |
+| Rider app              | Expo, same codebase style           | Planned     |
+| Kitchen screen + admin | Web (Expo web or React) on a tablet | Planned     |
+| Backend                | Supabase (Postgres, auth, realtime) | Next        |
+| Payments               | Qatar gateway (SADAD/SkipCash/Tap)  | Sandbox     |
+| SMS / WhatsApp         | Provider TBD                        | Sandbox     |
 
 ## Principles
 

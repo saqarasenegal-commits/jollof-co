@@ -126,3 +126,21 @@ export function orderableDays(now: Date): OrderableDay[] {
 export function canOrderFor(date: IsoDate, now: Date): OrderableDay | undefined {
   return orderableDays(now).find((d) => d.date === date);
 }
+
+export type RegionAction =
+  | { kind: "today"; date: IsoDate }
+  | { kind: "preorder"; date: IsoDate }
+  /** Not orderable yet: pre-orders for `date` open on `opensOn` (the day before). */
+  | { kind: "opensOn"; date: IsoDate; opensOn: IsoDate };
+
+/** What the home page button of a region card offers right now. */
+export function regionAction(region: Region, now: Date): RegionAction {
+  for (const day of orderableDays(now)) {
+    if (regionOfDay(day.date) === region) return day;
+  }
+  const today = toQatarTime(now).date;
+  const next = nextDaysForRegion(region, addDays(today, 1), 7).find(
+    (date) => now < preorderDeadline(date) || date > addDays(today, 1),
+  )!;
+  return { kind: "opensOn", date: next, opensOn: addDays(next, -1) };
+}

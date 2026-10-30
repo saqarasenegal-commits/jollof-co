@@ -8,6 +8,8 @@ orders, own riders (no Talabat, Snoonu or Rafeeq).
 ## What's inside
 
 ```
+apps/
+  customer/    Customer app (Expo / React Native), English + Arabic.
 packages/
   core/        Business rules shared by every app: menu, region of the day,
                40-portion limit, pre-order cut-off, prices. Pure TypeScript, fully tested.
@@ -16,8 +18,7 @@ scripts/       setup.sh: one-command setup for new developers.
 .github/       CI: formatting, type checks and tests on every push.
 ```
 
-Coming next (see [docs/ROADMAP.md](docs/ROADMAP.md)): the customer app (Expo / React Native, English
-and Arabic with right-to-left layout), the Supabase backend, the kitchen screen, the rider app and
+Coming next (see [docs/ROADMAP.md](docs/ROADMAP.md)): ordering in the customer app, the Supabase backend, the kitchen screen, the rider app and
 the admin.
 
 ## Getting started
@@ -26,6 +27,7 @@ Requirements: Node.js 20 or newer.
 
 ```bash
 ./scripts/setup.sh     # installs dependencies and runs every check
+npm start              # runs the customer app (press w for web)
 ```
 
 Everyday commands:

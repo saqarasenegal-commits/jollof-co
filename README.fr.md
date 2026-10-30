@@ -8,6 +8,8 @@ Qatar. Livraison uniquement, commandes directes, livreurs maison (pas de Talabat
 ## Contenu
 
 ```
+apps/
+  customer/    App client (Expo / React Native), anglais + arabe.
 packages/
   core/        Règles métier communes à toutes les apps : menu, région du jour,
                limite de 40 portions, heure limite de précommande, prix. TypeScript pur, testé.
@@ -16,8 +18,7 @@ scripts/       setup.sh : installation en une commande pour un nouveau développ
 .github/       CI : formatage, types et tests à chaque envoi de code.
 ```
 
-Prochaines étapes (voir [docs/ROADMAP.md](docs/ROADMAP.md)) : l'app client (Expo / React Native,
-anglais et arabe avec mise en page de droite à gauche), le backend Supabase, l'écran cuisine, l'app
+Prochaines étapes (voir [docs/ROADMAP.md](docs/ROADMAP.md)) : la commande dans l'app client, le backend Supabase, l'écran cuisine, l'app
 livreur et l'administration.
 
 ## Démarrer
@@ -26,6 +27,7 @@ Prérequis : Node.js 20 ou plus récent.
 
 ```bash
 ./scripts/setup.sh     # installe les dépendances et lance toutes les vérifications
+npm start              # lance l'app client (touche w pour le web)
 ```
 
 Commandes courantes :

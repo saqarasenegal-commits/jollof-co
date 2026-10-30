@@ -3,12 +3,14 @@
   "private": true,
   "description": "jollof&co: Pan-African cloud kitchen ordering app (Qatar)",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "engines": {
     "node": ">=20"
   },
   "scripts": {
+    "start": "npm run start -w @jollofco/customer",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "format": "prettier --write .",

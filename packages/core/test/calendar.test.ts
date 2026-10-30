@@ -10,6 +10,7 @@ import {
   orderableDays,
   preorderDeadline,
   qatarInstant,
+  regionAction,
   regionOfDay,
   toQatarTime,
 } from "../src";
@@ -95,5 +96,32 @@ describe("ordering windows", () => {
 
   it("allows only pre-orders before opening time", () => {
     expect(orderableDays(qatarInstant(MON, 8))).toEqual([{ date: TUE, kind: "preorder" }]);
+  });
+});
+
+describe("home page region cards", () => {
+  it("offers today's region for same-day delivery", () => {
+    expect(regionAction("west", qatarInstant(MON, 13))).toEqual({ kind: "today", date: MON });
+  });
+
+  it("offers tomorrow's region as a pre-order", () => {
+    expect(regionAction("east", qatarInstant(MON, 13))).toEqual({ kind: "preorder", date: TUE });
+  });
+
+  it("tells when pre-orders open for other regions", () => {
+    expect(regionAction("north", qatarInstant(MON, 13))).toEqual({
+      kind: "opensOn",
+      date: WED,
+      opensOn: TUE,
+    });
+  });
+
+  it("moves to the next occurrence after the cut-off", () => {
+    // Monday 23:00: kitchen closed, Tuesday pre-orders closed. East is next served on Sunday 8th.
+    expect(regionAction("east", qatarInstant(MON, 23))).toEqual({
+      kind: "opensOn",
+      date: "2026-11-08",
+      opensOn: SAT,
+    });
   });
 });
