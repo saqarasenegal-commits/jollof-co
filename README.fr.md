@@ -10,7 +10,9 @@ Qatar. Livraison uniquement, commandes directes, livreurs maison (pas de Talabat
 ```
 apps/
   customer/    App client (Expo / React Native), anglais + arabe.
+  kitchen/     Écran cuisine sur tablette : commandes, statuts, portions à cuisiner.
 packages/
+  brand/       Couleurs de la marque, communes aux apps.
   core/        Règles métier communes à toutes les apps : menu, région du jour,
                limite de 40 portions, heure limite de précommande, prix. TypeScript pur, testé.
   server/      Prise de commande côté serveur : validation, stock, paiement, SMS.

@@ -10,7 +10,9 @@ orders, own riders (no Talabat, Snoonu or Rafeeq).
 ```
 apps/
   customer/    Customer app (Expo / React Native), English + Arabic.
+  kitchen/     Kitchen screen for a tablet: orders, statuses, portions to cook.
 packages/
+  brand/       Brand colours shared by the apps.
   core/        Business rules shared by every app: menu, region of the day,
                40-portion limit, pre-order cut-off, prices. Pure TypeScript, fully tested.
   server/      Order placement on the server: validation, stock, payment, SMS.
