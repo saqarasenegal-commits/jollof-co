@@ -10,14 +10,16 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@jollofco/brand": "*",
     "@jollofco/core": "*",
+    "@supabase/supabase-js": "^2.118.0",
     "expo": "~58.0.21",
     "expo-status-bar": "~58.0.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.1",
     "react-native-web": "^0.21.4",
-    "@jollofco/brand": "*"
+    "@jollofco/staff": "*"
   },
   "devDependencies": {
     "@types/react": "~19.3.0",

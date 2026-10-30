@@ -10,10 +10,11 @@ Expo app meant for a tablet in the kitchen (landscape). Shows:
 npm run web -w @jollofco/kitchen     # open in the browser
 ```
 
-Orders come from `src/data/orders.ts`. It uses sample orders until the Supabase backend is
-deployed (the database side is ready: `set_order_status` and the `staff` table in
-`supabase/migrations`). Rules (status steps, ticket order, prep list) live in
+Orders come from `src/data/orders.ts`: the live database when `.env` exists
+(`cp .env.example .env`; kitchen staff sign in, see `docs/STAFF.md`), sample orders otherwise.
+New orders appear by themselves (realtime, plus a refresh every 30 seconds). Rules (status steps, ticket order, prep list) live in
 `packages/core/src/kitchen.ts`.
 
 FR : écran pour la tablette en cuisine. Commandes à préparer, bouton pour avancer chaque commande,
-et à gauche le nombre de portions à cuisiner. Données d'exemple tant que Supabase n'est pas en ligne.
+et à gauche le nombre de portions à cuisiner. Avec le fichier `.env`, la cuisine se connecte et voit les vraies commandes ; sans lui, données
+d'exemple.

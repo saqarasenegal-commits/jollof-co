@@ -20,9 +20,8 @@ writing the Supabase version of each, without touching the screens:
   (`supabase/functions/README.md`), which runs `placeOrder` from packages/server with live prices.
   Payment is still the sandbox (card orders are marked paid without charging): switch
   `PAYMENT_PROVIDER` before real customers order by card.
-- `apps/kitchen/src/data/orders.ts`, `apps/rider/src/data/stops.ts`, `apps/admin/src/data/admin.ts`:
-  staff sign-in (Supabase Auth), then call `set_order_status`, `assign_rider`, `mark_delivered`,
-  `update_dish`, `set_portions`.
+- Done: kitchen, rider and admin apps sign staff in (`packages/staff`, Supabase Auth) and use
+  `supabaseKitchen`, `supabaseStops`, `supabaseAdmin`. Accounts: `docs/STAFF.md`.
 
 ## Waiting on the owner
 

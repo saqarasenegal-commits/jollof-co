@@ -33,6 +33,8 @@ export const L = {
     "below-sold": "Impossible : c'est moins que les portions déjà vendues.",
     "too-high": "Nombre trop élevé, vérifiez.",
   } as Record<PortionsError, string>,
-  placeholderNotice:
-    "Mode démonstration : les changements ne sont pas encore enregistrés dans la base (Supabase pas encore en ligne).",
+  saveFailed: "Pas enregistré : vérifiez la connexion et réessayez.",
+  signOut: "Se déconnecter",
+  demoNotice:
+    "Mode démonstration : les changements ne sont pas enregistrés (fichier .env absent, voir le README).",
 };

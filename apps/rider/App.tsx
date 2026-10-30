@@ -3,12 +3,33 @@ import { addressLine, findDish, sortStops, stopLinks, type RiderStop } from "@jo
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState } from "react";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { demoStops, type StopSource } from "./src/data/stops";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SIGN_IN_EN, StaffGate, staffClientFromEnv } from "@jollofco/staff";
+import { demoStops, supabaseStops, type StopSource } from "./src/data/stops";
+
+// Live database when .env is set (riders sign in first), sample deliveries otherwise.
+// AsyncStorage keeps the rider signed in between app launches.
+const client = staffClientFromEnv(AsyncStorage);
+const liveSource = client && supabaseStops(client);
 
 /** Rider app: English only for now (riders' language to confirm with the owner). */
 export default function App() {
-  const source: StopSource = useMemo(() => demoStops(new Date()), []);
+  if (!client || !liveSource) return <DemoRider />;
+  return (
+    <StaffGate client={client} allowed={["rider"]} labels={SIGN_IN_EN} signOutLabel="Sign out">
+      {() => <Deliveries source={liveSource} />}
+    </StaffGate>
+  );
+}
+
+function DemoRider() {
+  const source = useMemo(() => demoStops(new Date()), []);
+  return <Deliveries source={source} />;
+}
+
+function Deliveries({ source }: { source: StopSource }) {
   const [stops, setStops] = useState<RiderStop[]>([]);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => source.watch(setStops), [source]);
 
   return (
@@ -18,10 +39,20 @@ export default function App() {
         <Text style={styles.title}>My deliveries</Text>
         <Text style={styles.count}>{stops.length}</Text>
       </View>
+      {error && <Text style={styles.error}>{error}</Text>}
       <ScrollView contentContainerStyle={styles.list}>
         {stops.length === 0 && <Text style={styles.empty}>No delivery right now.</Text>}
         {sortStops(stops).map((s) => (
-          <Stop key={s.orderId} stop={s} onDelivered={() => source.markDelivered(s.orderId)} />
+          <Stop
+            key={s.orderId}
+            stop={s}
+            onDelivered={() =>
+              source.markDelivered(s.orderId).then(
+                () => setError(null),
+                (e: Error) => setError(e.message),
+              )
+            }
+          />
         ))}
       </ScrollView>
     </View>
@@ -65,6 +96,7 @@ function LinkButton({ label, url }: { label: string; url: string }) {
 }
 
 const styles = StyleSheet.create({
+  error: { color: colors.bissap, paddingHorizontal: spacing(4), paddingTop: spacing(2) },
   screen: { flex: 1, backgroundColor: colors.indigo },
   header: {
     flexDirection: "row",

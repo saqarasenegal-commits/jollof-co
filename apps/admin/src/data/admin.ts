@@ -1,11 +1,12 @@
 /**
  * Where the admin screens read and save data.
  *
- * `demoAdmin` keeps everything in memory, starting from the menu in packages/core.
- * The Supabase version calls `update_dish` and `set_portions` (supabase/migrations)
- * and implements the same interface.
+ * `supabaseAdmin` reads the dishes and daily stock and calls `update_dish` and
+ * `set_portions` (supabase/migrations). `demoAdmin` keeps everything in memory,
+ * starting from the menu in packages/core. Same interface for both.
  */
 import { DEFAULT_PORTIONS, MENU, type Dish, type IsoDate } from "@jollofco/core";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export interface DayStock {
   dishId: string;
@@ -48,5 +49,50 @@ export function demoAdmin(): AdminSource {
       };
       stock.set(key(date, dishId), { ...current, portions });
     },
+  };
+}
+
+/** Needs a signed-in admin (the SQL functions check the role). */
+export function supabaseAdmin(client: SupabaseClient): AdminSource {
+  async function rpc(name: string, args: Record<string, unknown>) {
+    const { error } = await client.rpc(name, args);
+    if (error) throw new Error(error.message);
+  }
+
+  return {
+    async dishes() {
+      // Names and descriptions ship with the apps; the database holds price and on/off.
+      const { data, error } = await client.from("dishes").select("id, price_qar, active");
+      if (error) throw error;
+      const live = new Map(data.map((r) => [r.id as string, r]));
+      return MENU.filter((d) => live.has(d.id)).map((d) => ({
+        ...d,
+        price: Number(live.get(d.id)!.price_qar),
+        active: live.get(d.id)!.active as boolean,
+      }));
+    },
+    updateDish: (id, change) =>
+      rpc("update_dish", {
+        p_dish_id: id,
+        p_price_qar: change.price ?? null,
+        p_active: change.active ?? null,
+      }),
+    async stockOn(date, dishIds) {
+      const { data, error } = await client
+        .from("daily_stock")
+        .select("dish_id, portions, sold")
+        .eq("delivery_date", date)
+        .in("dish_id", dishIds);
+      if (error) throw error;
+      const rows = new Map(data.map((r) => [r.dish_id as string, r]));
+      return dishIds.map((id) => {
+        const r = rows.get(id);
+        return r
+          ? { dishId: id, portions: r.portions, sold: r.sold }
+          : { dishId: id, portions: DEFAULT_PORTIONS, sold: 0 };
+      });
+    },
+    setPortions: (date, dishId, portions) =>
+      rpc("set_portions", { p_date: date, p_dish_id: dishId, p_portions: portions }),
   };
 }

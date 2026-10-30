@@ -2,15 +2,33 @@ import { colors, spacing } from "@jollofco/brand";
 import { StatusBar } from "expo-status-bar";
 import { useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { demoAdmin, type AdminSource } from "./src/data/admin";
+import { SIGN_IN_FR, StaffGate, staffClientFromEnv } from "@jollofco/staff";
+import { demoAdmin, supabaseAdmin, type AdminSource } from "./src/data/admin";
 import { L } from "./src/labels";
 import { MenuScreen } from "./src/screens/MenuScreen";
 import { PortionsScreen } from "./src/screens/PortionsScreen";
 
 type Tab = keyof typeof L.tabs;
 
+// Live database when .env is set (admin signs in first), demo data otherwise.
+const client = staffClientFromEnv();
+const liveSource = client && supabaseAdmin(client);
+
 export default function App() {
-  const source: AdminSource = useMemo(() => demoAdmin(), []);
+  if (!client || !liveSource) return <DemoAdmin />;
+  return (
+    <StaffGate client={client} allowed={["admin"]} labels={SIGN_IN_FR} signOutLabel={L.signOut}>
+      {() => <AdminScreen source={liveSource} />}
+    </StaffGate>
+  );
+}
+
+function DemoAdmin() {
+  const source = useMemo(() => demoAdmin(), []);
+  return <AdminScreen source={source} demo />;
+}
+
+function AdminScreen({ source, demo = false }: { source: AdminSource; demo?: boolean }) {
   const [tab, setTab] = useState<Tab>("menu");
 
   return (
@@ -38,7 +56,7 @@ export default function App() {
           </Pressable>
         ))}
       </View>
-      <Text style={styles.notice}>{L.placeholderNotice}</Text>
+      {demo && <Text style={styles.notice}>{L.demoNotice}</Text>}
       <ScrollView contentContainerStyle={styles.content}>
         {tab === "menu" ? (
           <MenuScreen source={source} />
