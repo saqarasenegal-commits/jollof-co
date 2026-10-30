@@ -8,6 +8,20 @@
 | 4     | Kitchen screen, rider app, admin (menu, prices, stock)                       | In progress |
 | 5     | Go-live: real payment gateway, store accounts, monitoring                    | Planned     |
 
+## Connecting the backend (once a Supabase project exists)
+
+Every app reads and writes through a small data file with a demo implementation. Going live means
+writing the Supabase version of each, without touching the screens:
+
+- `apps/customer/src/data/stock.ts` and the menu: read `dishes` and `daily_stock` from Supabase, so
+  admin price changes and dishes taken off the menu show up in the app (today the app reads the
+  menu from packages/core).
+- `apps/customer/src/data/orders.ts`: deploy `placeOrder` (packages/server) as a Supabase Edge
+  Function and set `EXPO_PUBLIC_ORDER_API_URL`.
+- `apps/kitchen/src/data/orders.ts`, `apps/rider/src/data/stops.ts`, `apps/admin/src/data/admin.ts`:
+  staff sign-in (Supabase Auth), then call `set_order_status`, `assign_rider`, `mark_delivered`,
+  `update_dish`, `set_portions`.
+
 ## Waiting on the owner
 
 - Real prices, delivery fees, minimum order, opening hours

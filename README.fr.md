@@ -12,6 +12,7 @@ apps/
   customer/    App client (Expo / React Native), anglais + arabe.
   kitchen/     Écran cuisine sur tablette : commandes, statuts, portions à cuisiner.
   rider/       App livreur : livraisons, appel/WhatsApp/carte, marquer livré.
+  admin/       Back-office du propriétaire : prix, plats en vente, portions par jour.
 packages/
   brand/       Couleurs de la marque, communes aux apps.
   core/        Règles métier communes à toutes les apps : menu, région du jour,

@@ -142,6 +142,37 @@ begin
     assert sqlerrm = 'not_allowed', 'unexpected error: ' || sqlerrm;
   end;
 
+  -- Admin: only admins change prices and portions; portions never below sold.
+  begin
+    perform public.update_dish('jollof', 50, null);
+    assert false, 'customers cannot change prices';
+  exception when raise_exception then
+    assert sqlerrm = 'not_allowed', 'unexpected error: ' || sqlerrm;
+  end;
+  insert into public.staff values ('00000000-0000-0000-0000-0000000000ad', 'Owner', 'admin');
+  perform set_config('test.uid', '00000000-0000-0000-0000-0000000000ad', true);
+  assert (public.update_dish('jollof', 50, null)).price_qar = 50, 'price updated';
+  assert not (public.update_dish('jollof', null, false)).active, 'dish turned off';
+  begin
+    perform public.update_dish('jollof', 4500, null);
+    assert false, 'price too high';
+  exception when raise_exception then
+    assert sqlerrm = 'invalid_price', 'unexpected error: ' || sqlerrm;
+  end;
+  assert (public.set_portions('2026-11-09', 'jollof', 60)).portions = 60, 'more portions for a future day';
+  begin
+    perform public.set_portions('2026-11-02', 'jollof', 30); -- 40 already sold that day
+    assert false, 'cannot go below sold';
+  exception when raise_exception then
+    assert sqlerrm = 'below_sold', 'unexpected error: ' || sqlerrm;
+  end;
+  begin
+    perform public.set_portions('2026-11-02', 'bissap', 30);
+    assert false, 'fixed menu has no portions';
+  exception when raise_exception then
+    assert sqlerrm = 'not_a_dish_of_the_day', 'unexpected error: ' || sqlerrm;
+  end;
+
   raise notice 'database tests passed';
 end;
 $$;
