@@ -1,5 +1,5 @@
 import { ORIGINS, portionsLeft, type Dish, type Lang } from "@jollofco/core";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { strings } from "../i18n";
 import { colors, spacing } from "../theme";
 import { textDir } from "./textDir";
@@ -9,9 +9,12 @@ interface Props {
   lang: Lang;
   /** Portions already sold that day (dishes of the day only). */
   sold: number;
+  /** Quantity of this dish in the basket. */
+  qty: number;
+  onChange: (delta: number) => void;
 }
 
-export function DishRow({ dish, lang, sold }: Props) {
+export function DishRow({ dish, lang, sold, qty, onChange }: Props) {
   const t = strings[lang];
   const left = portionsLeft(dish, sold);
   const rtl = lang === "ar";
@@ -33,6 +36,34 @@ export function DishRow({ dish, lang, sold }: Props) {
             {left === 0 ? t.soldOut : t.portionsLeft(left)}
           </Text>
         )}
+        <View style={[styles.stepper, rtl && styles.rowRtl]}>
+          {qty > 0 && (
+            <>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t.remove}
+                onPress={() => onChange(-1)}
+                style={styles.stepButton}
+              >
+                <Text style={styles.stepText}>−</Text>
+              </Pressable>
+              <Text style={styles.qty}>{qty}</Text>
+            </>
+          )}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t.add}
+            disabled={left !== null && qty >= left}
+            onPress={() => onChange(1)}
+            style={[
+              styles.stepButton,
+              styles.addButton,
+              left !== null && qty >= left && styles.disabled,
+            ]}
+          >
+            <Text style={styles.stepText}>+</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -64,5 +95,18 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     overflow: "hidden",
   },
+  stepper: { flexDirection: "row", alignItems: "center", gap: spacing(2), marginTop: spacing(1) },
+  stepButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.line,
+  },
+  addButton: { backgroundColor: colors.saffron },
+  disabled: { opacity: 0.4 },
+  stepText: { fontSize: 18, fontWeight: "700", color: colors.indigo },
+  qty: { minWidth: 16, textAlign: "center", fontWeight: "700", color: colors.indigo },
   badgeSoldOut: { color: colors.white, backgroundColor: colors.bissap },
 });

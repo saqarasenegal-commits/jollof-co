@@ -22,6 +22,12 @@ const en = {
   soldOut: "Sold out",
   qar: (n: number) => `QAR ${n}`,
   spicy: "Spicy",
+  add: "Add",
+  remove: "Remove",
+  basket: (n: number) => `${n} in basket`,
+  forDay: (day: string) => `For ${day}`,
+  missingForMinimum: (n: number) => `Add QAR ${n} to reach the minimum order`,
+  removedFromBasket: (names: string) => `Not served that day, removed: ${names}`,
 };
 
 type Strings = typeof en;
@@ -41,6 +47,12 @@ const ar: Strings = {
   soldOut: "نفدت الكمية",
   qar: (n) => `${n} ر.ق`,
   spicy: "حار",
+  add: "إضافة",
+  remove: "حذف",
+  basket: (n) => `${n} في السلة`,
+  forDay: (day) => `ليوم ${day}`,
+  missingForMinimum: (n) => `أضف ${n} ر.ق للوصول إلى الحد الأدنى للطلب`,
+  removedFromBasket: (names) => `غير متوفر في ذلك اليوم، تم حذف: ${names}`,
 };
 
 export const strings: Record<Lang, Strings> = { en, ar };
