@@ -111,16 +111,15 @@ end;
 $$;
 
 -- Riders only see the orders handed to them; kitchen and admin see all.
-drop policy "staff read orders" on public.orders;
-create policy "staff read orders" on public.orders
-  for select to authenticated using (
+-- (alter policy instead of drop + create: same result, no destructive statement)
+alter policy "staff read orders" on public.orders
+  using (
     public.staff_role() in ('kitchen', 'admin')
     or (public.staff_role() = 'rider' and rider_id = auth.uid())
   );
 
-drop policy "staff read order items" on public.order_items;
-create policy "staff read order items" on public.order_items
-  for select to authenticated using (
+alter policy "staff read order items" on public.order_items
+  using (
     exists (select from public.orders o where o.id = order_id)
   );
 
