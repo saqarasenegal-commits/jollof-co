@@ -13,11 +13,12 @@
 Every app reads and writes through a small data file with a demo implementation. Going live means
 writing the Supabase version of each, without touching the screens:
 
-- `apps/customer/src/data/stock.ts` and the menu: read `dishes` and `daily_stock` from Supabase, so
-  admin price changes and dishes taken off the menu show up in the app (today the app reads the
-  menu from packages/core).
+- Done: `apps/customer/src/data/menu.ts` and `stock.ts` read `dishes` and `daily_stock` (see the
+  app's `.env.example`). Names and descriptions ship with the app; prices and on/off come from the
+  database through `applyMenuUpdates` (packages/core).
 - `apps/customer/src/data/orders.ts`: deploy `placeOrder` (packages/server) as a Supabase Edge
-  Function and set `EXPO_PUBLIC_ORDER_API_URL`.
+  Function and set `EXPO_PUBLIC_ORDER_API_URL`. The function must load the live prices with
+  `applyMenuUpdates` before `validateOrder`, so totals match what the customer saw.
 - `apps/kitchen/src/data/orders.ts`, `apps/rider/src/data/stops.ts`, `apps/admin/src/data/admin.ts`:
   staff sign-in (Supabase Auth), then call `set_order_status`, `assign_rider`, `mark_delivered`,
   `update_dish`, `set_portions`.

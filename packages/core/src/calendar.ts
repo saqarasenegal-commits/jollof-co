@@ -5,7 +5,7 @@
  * itself) so the rules are easy to test for any day and hour.
  */
 import { OPENING_HOURS, PREORDER_CUTOFF, PREORDER_DAYS_AHEAD, ROTATION, TIMEZONE } from "./config";
-import { MENU } from "./menu";
+import { currentMenu } from "./menu";
 import type { Dish, IsoDate, Region } from "./types";
 
 /** Qatar is UTC+3 all year (no daylight saving), which keeps date maths simple. */
@@ -65,7 +65,7 @@ export function regionOfDay(date: IsoDate): Region {
 /** Slow-cooked dishes of the day (limited portions). */
 export function dishesOfTheDay(date: IsoDate): Dish[] {
   const region = regionOfDay(date);
-  return MENU.filter((d) => d.dailySpecial && d.region === region);
+  return currentMenu().filter((d) => d.dailySpecial && d.region === region);
 }
 
 /** Fixed-menu dishes are sold every day; dishes of the day only on their region's day. */
@@ -75,7 +75,7 @@ export function isServedOn(dish: Dish, date: IsoDate): boolean {
 
 /** Everything that can be ordered for delivery on this date. */
 export function menuFor(date: IsoDate): Dish[] {
-  return MENU.filter((d) => isServedOn(d, date));
+  return currentMenu().filter((d) => isServedOn(d, date));
 }
 
 /** Next dates (from `from`, included) when a region is served. */
