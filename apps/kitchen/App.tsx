@@ -34,6 +34,12 @@ export default function App() {
 
   useEffect(() => source.watch(date, setOrders), [source, date]);
 
+  const report = (p: Promise<void>) =>
+    p.then(
+      () => setError(null),
+      (e: Error) => setError(e.message),
+    );
+
   const tickets = sortTickets(orders);
   const prep = prepList(orders, date);
   const clock = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
@@ -65,12 +71,9 @@ export default function App() {
               key={o.id}
               order={o}
               now={now}
-              onStatus={(status) =>
-                source.setStatus(o.id, status).then(
-                  () => setError(null),
-                  (e: Error) => setError(e.message),
-                )
-              }
+              riders={source.riders}
+              onStatus={(status) => report(source.setStatus(o.id, status))}
+              onRider={(riderId) => report(source.assignRider(o.id, riderId))}
             />
           ))}
         </ScrollView>

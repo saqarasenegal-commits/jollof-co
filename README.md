@@ -11,6 +11,7 @@ orders, own riders (no Talabat, Snoonu or Rafeeq).
 apps/
   customer/    Customer app (Expo / React Native), English + Arabic.
   kitchen/     Kitchen screen for a tablet: orders, statuses, portions to cook.
+  rider/       Rider app: deliveries, call/WhatsApp/map, mark delivered.
 packages/
   brand/       Brand colours shared by the apps.
   core/        Business rules shared by every app: menu, region of the day,
