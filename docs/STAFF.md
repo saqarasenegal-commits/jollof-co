@@ -31,6 +31,12 @@ nothing without a row in `public.staff`, but there is no reason to allow it.)
 
 3. They sign in to their app with that email and password.
 
+## Staff without an email address
+
+The address is only a login name: Supabase sends nothing to it when "Auto confirm user" is ticked.
+Use a made-up one such as `moussa@staff.jollofco`. "Forgot password" can't work for these
+accounts, so the owner resets the password in Authentication → Users.
+
 ## Remove access
 
 Change or remove their row, then delete the user in Authentication → Users:
@@ -50,3 +56,6 @@ Ajouter quelqu'un :
 2. Dans l'éditeur SQL, la requête ci-dessus avec son nom et son rôle (`kitchen` = cuisine,
    `rider` = livreur, `admin` = administration).
 3. La personne se connecte à son app avec cet e-mail et ce mot de passe.
+
+Sans adresse e-mail : inventez-en une comme `moussa@staff.jollofco` (elle sert seulement
+d'identifiant). En cas d'oubli, changez le mot de passe dans Authentication → Users.
